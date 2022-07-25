@@ -1,0 +1,5 @@
+{
+    "name": "Starknet ID",
+    "description": "This token represents an identity on StarkNet that can be linked to external services.",
+    "image": "https://starknet.id/default/avatar.jpg"
+}
