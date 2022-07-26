@@ -21,7 +21,7 @@ export default function Identities() {
   const router = useRouter();
   const [minted, setMinted] = useState("false");
   const randomTokenId = Math.floor(Math.random() * 100000000);
-  const [ownedIdentities, setOwnedIdentities] = useState(undefined);
+  const [ownedIdentities, setOwnedIdentities] = useState([]);
   const [rightTokenId, setRightTokenId] = useState(undefined);
 
   // Connection
@@ -73,9 +73,9 @@ export default function Identities() {
   useEffect(() => {
     if (!account) return;
 
-    fetch(`https://indexer.starknet.id/fetch_tokens?address=${BigInt(account)}`)
+    fetch(`https://api-testnet.aspect.co/api/v0/assets?contract_address=0x04564121a7ad7757c425e4dac1a855998bf186303107d1c28edbf0de420e7023&owner_address=${account}&sort_by=minted_at&order_by=desc`)
       .then((response) => response.json())
-      .then((data) => setOwnedIdentities(data));
+      .then((data) => setOwnedIdentities(data.assets));
   }, [account]);
 
   return (
@@ -90,7 +90,7 @@ export default function Identities() {
           <>
             <h1 className="sm:text-5xl text-5xl">Your Starknet identities</h1>
             <div className={styles.containerGallery}>
-              <IdentitiesGallery tokenIds={ownedIdentities?.tokens} />
+              <IdentitiesGallery tokensData={ownedIdentities} />
               <MintIdentity onClick={mint} />
             </div>
             <div>
