@@ -17,10 +17,10 @@ export default function TokenId() {
   const tokenIdAbbreviation =
     router.query.tokenId?.length > 5
       ? router.query.tokenId?.charAt(0) +
-        router.query.tokenId?.charAt(1) +
-        "..." +
-        router.query.tokenId?.charAt(router.query.tokenId?.length - 2) +
-        router.query.tokenId?.charAt(router.query.tokenId?.length - 1)
+      router.query.tokenId?.charAt(1) +
+      "..." +
+      router.query.tokenId?.charAt(router.query.tokenId?.length - 2) +
+      router.query.tokenId?.charAt(router.query.tokenId?.length - 1)
       : router.query.tokenId;
 
   //Contract calls
@@ -39,13 +39,6 @@ export default function TokenId() {
     ],
   });
   const [isValidDiscord, setIsValidDiscord] = useState(false);
-
-  function onDiscordClick() {
-    sessionStorage.setItem("tokenId", router.query.tokenId);
-    window.location.replace(
-      "https://discord.com/oauth2/authorize?client_id=991638947451129886&redirect_uri=https%3A%2F%2Fstarknet.id%2Fdiscord&response_type=code&scope=identify"
-    );
-  }
 
   useEffect(() => {
     if (!account) {
@@ -76,7 +69,8 @@ export default function TokenId() {
 
         <div className="flex">
           <div className="m-3">
-            <ClickableIcon icon="steam" onClick={onDiscordClick} />
+            <ClickableIcon icon="steam" onClick={() => {
+            }} />
             <div className="flex justify-center items-center">
               <>
                 <p className="mt-1 mr-1 font-bold">Unverified</p>
@@ -85,7 +79,12 @@ export default function TokenId() {
             </div>
           </div>
           <div className="m-3">
-            <ClickableIcon icon="twitter" onClick={onDiscordClick} />
+            <ClickableIcon icon="twitter" onClick={() => {
+              sessionStorage.setItem("tokenId", router.query.tokenId);
+              window.location.replace(
+                "https://twitter.com/i/oauth2/authorize?response_type=code&client_id=Rkp6QlJxQzUzbTZtRVljY2paS0k6MTpjaQ&redirect_uri=https://starknet.id/twitter&scope=users.read%20tweet.read&state=state&code_challenge=challenge&code_challenge_method=plain"
+              );
+            }} />
             <div className="flex justify-center items-center">
               <>
                 <p className="mt-1 mr-1 font-bold">Unverified</p>
@@ -94,7 +93,12 @@ export default function TokenId() {
             </div>
           </div>
           <div className="m-3">
-            <ClickableIcon icon="discord" onClick={onDiscordClick} />
+            <ClickableIcon icon="discord" onClick={() => {
+              sessionStorage.setItem("tokenId", router.query.tokenId);
+              window.location.replace(
+                "https://discord.com/oauth2/authorize?client_id=991638947451129886&redirect_uri=https%3A%2F%2Fstarknet.id%2Fdiscord&response_type=code&scope=identify"
+              );
+            }} />
             <div className="flex justify-center items-center">
               {loading ? (
                 <MutatingDots
