@@ -72,8 +72,6 @@ export default function Twitter() {
       twitterIdError ||
       twitterIdSetterError);
 
-  console.log("aloha", successScreenCondition, startProcessData?.status, verifyData?.status, twitterIdError, twitterIdSetterError)
-
   const loadingScreenCondition =
     isConnected &&
     !errorScreenCondition &&
