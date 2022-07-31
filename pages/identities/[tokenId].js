@@ -1,15 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import Head from "next/head";
 import styles from "../../styles/Identities.module.css";
-import { useStarknet, useStarknetCall } from "@starknet-react/core";
-import { useEffect } from "react";
+import { useStarknet } from "@starknet-react/core";
 import { useRouter } from "next/router";
 import Button from "../../components/button";
 import ClickableIcon from "../../components/clickableIcon";
-import { GoVerified, GoUnverified } from "react-icons/go";
-import { useStarknetIdContract } from "../../hooks/starknetId";
-import { stringToFelt } from "../../utils/felt";
-import { MutatingDots } from "react-loader-spinner";
+import { GoUnverified } from "react-icons/go";
+import Verified from "../../components/verified";
+import { useEffect } from "react";
 
 export default function TokenId() {
   const router = useRouter();
@@ -24,35 +22,11 @@ export default function TokenId() {
       : router.query.tokenId;
 
   //Contract calls
-  const { contract } = useStarknetIdContract();
-  const {
-    data: isValidData,
-    error: isValidError,
-    loading,
-  } = useStarknetCall({
-    contract: contract,
-    method: "is_valid",
-    args: [
-      [router.query.tokenId, 0],
-      stringToFelt("discord"),
-      process.env.NEXT_PUBLIC_VERIFIER,
-    ],
-  });
-  const [isValidDiscord, setIsValidDiscord] = useState(false);
-
   useEffect(() => {
     if (!account) {
       router.push("/home");
     }
   }, [account, router]);
-
-  useEffect(() => {
-    if (isValidError || !isValidData || Number(isValidData) === 0) {
-      setIsValidDiscord(false);
-    } else {
-      setIsValidDiscord(true);
-    }
-  }, [isValidData, isValidError]);
 
   return (
     <div className="h-screen w-screen">
@@ -69,16 +43,6 @@ export default function TokenId() {
 
         <div className="flex">
           <div className="m-3">
-            <ClickableIcon icon="steam" onClick={() => {
-            }} />
-            <div className="flex justify-center items-center">
-              <>
-                <p className="mt-1 mr-1 font-bold">Unverified</p>
-                <GoUnverified color="#FF5008" />
-              </>
-            </div>
-          </div>
-          <div className="m-3">
             <ClickableIcon icon="twitter" onClick={() => {
               sessionStorage.setItem("tokenId", router.query.tokenId);
               window.location.replace(
@@ -86,10 +50,7 @@ export default function TokenId() {
               );
             }} />
             <div className="flex justify-center items-center">
-              <>
-                <p className="mt-1 mr-1 font-bold">Unverified</p>
-                <GoUnverified color="#FF5008" />
-              </>
+              <Verified type="twitter" />
             </div>
           </div>
           <div className="m-3">
@@ -100,25 +61,7 @@ export default function TokenId() {
               );
             }} />
             <div className="flex justify-center items-center">
-              {loading ? (
-                <MutatingDots
-                  height="25"
-                  width="25"
-                  color="#ff5008"
-                  secondaryColor="white"
-                  ariaLabel="loading"
-                />
-              ) : isValidDiscord ? (
-                <>
-                  <p className="mt-1 mr-1 font-bold">Verified</p>
-                  <GoVerified color="#FF5008" />
-                </>
-              ) : (
-                <>
-                  <p className="mt-1 mr-1 font-bold">Unverified</p>
-                  <GoUnverified color="#FF5008" />
-                </>
-              )}
+              <Verified type="discord" />
             </div>
           </div>
         </div>
