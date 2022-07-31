@@ -225,7 +225,7 @@ export default function Twitter() {
             <SuccessScreen
               onClick={() => router.push(`/identities/${tokenId}`)}
               successButton="Get back to your starknet identity"
-              successMessage="What a chad, you're twitter is verified !"
+              successMessage="What a chad, your twitter is verified!"
             />
             <p className="mt-2">
               <a
