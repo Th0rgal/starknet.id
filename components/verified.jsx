@@ -1,5 +1,5 @@
 import React from "react";
-import { MutatingDots } from "react-loader-spinner";
+import { ThreeDots } from "react-loader-spinner";
 import { GoVerified, GoUnverified } from "react-icons/go";
 import { useStarknetCall } from "@starknet-react/core";
 import { useStarknetIdContract } from "../hooks/starknetId";
@@ -35,12 +35,15 @@ const Verified = ({ type }) => {
     }, [data, error]);
 
     return !data ? (
-        <MutatingDots
+        <ThreeDots
             height="25"
-            width="25"
-            color="#ff5008"
-            secondaryColor="white"
-            ariaLabel="loading"
+            width="80"
+            radius="9"
+            color="#ffffff"
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{}}
+            wrapperClassName=""
+            visible={true}
         />
     ) : isValid ? (
         <>

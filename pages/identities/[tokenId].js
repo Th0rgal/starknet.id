@@ -5,7 +5,6 @@ import { useStarknet } from "@starknet-react/core";
 import { useRouter } from "next/router";
 import Button from "../../components/button";
 import ClickableIcon from "../../components/clickableIcon";
-import { GoUnverified } from "react-icons/go";
 import Verified from "../../components/verified";
 import { useEffect } from "react";
 
