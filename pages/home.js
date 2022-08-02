@@ -4,12 +4,15 @@ import Button from "../components/button";
 import animationData from "../public/assets/lottie-ethereum.json";
 import Lottie from "../components/lottie";
 import { useConnectors, useStarknet } from "@starknet-react/core";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Wallets from "../components/wallets";
 
 export default function HomePage() {
-  const { connect, connectors } = useConnectors();
+
   const { account } = useStarknet();
+  const [hasWallet, setHasWallet] = useState(false);
+  const { available, connect } = useConnectors()
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +29,8 @@ export default function HomePage() {
         <link rel="icon" href="/starknet-logo.webp" />
       </Head>
 
+      {hasWallet ? <Wallets close={() => setHasWallet(false)} /> : null}
+
       <div className={styles.container}>
         <div>
           <div className="text-center">
@@ -33,19 +38,15 @@ export default function HomePage() {
             <p className="italic mt-6">
               &quot;Be a Chad and own your on-chain identity&quot;
             </p>
-            <div>
-              {connectors.map((connector) =>
-                connector.available() && connector.options.id === "argent-x" ? (
-                  <Button
-                    key={connector.id()}
-                    onClick={() => connect(connector)}
-                  >
-                    Claim your Starknet.id
-                  </Button>
-                ) : (
-                  <div></div>
-                )
-              )}
+            <div className={styles.center}>
+              <Button
+                onClick={
+                  () => (available.length === 1) ?
+                    connect(available[0])
+                    : setHasWallet(true)}
+              >
+                Claim your Starknet.id
+              </Button>
             </div>
           </div>
         </div>

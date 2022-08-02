@@ -1,13 +1,19 @@
 .container {
-  height: 90vh;
-  display: flex;
+  height         : 90vh;
+  display        : flex;
   justify-content: center;
-  align-items: center;
+  align-items    : center;
 }
 
 @media screen and (max-width: 768px) {
   .container {
-    height: 95vh;
+    height        : 95vh;
     flex-direction: column-reverse;
   }
+}
+
+.center {
+  display        : flex;
+  justify-content: center;
+  align-items    : center;
 }
