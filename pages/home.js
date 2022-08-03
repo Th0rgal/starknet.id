@@ -9,10 +9,9 @@ import { useRouter } from "next/router";
 import Wallets from "../components/wallets";
 
 export default function HomePage() {
-
   const { account } = useStarknet();
   const [hasWallet, setHasWallet] = useState(false);
-  const { available, connect } = useConnectors()
+  const { available, connect } = useConnectors();
   const router = useRouter();
 
   useEffect(() => {
@@ -39,14 +38,17 @@ export default function HomePage() {
               &quot;Be a Chad and own your on-chain identity&quot;
             </p>
             <div className={styles.center}>
-              <Button
-                onClick={
-                  () => (available.length === 1) ?
-                    connect(available[0])
-                    : setHasWallet(true)}
-              >
-                Claim your Starknet.id
-              </Button>
+              <div className="mt-8">
+                <Button
+                  onClick={() =>
+                    available.length === 1
+                      ? connect(available[0])
+                      : setHasWallet(true)
+                  }
+                >
+                  Claim your Starknet.id
+                </Button>
+              </div>
             </div>
           </div>
         </div>

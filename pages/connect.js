@@ -40,9 +40,14 @@ export default function Connect() {
 
         <div>
           {connector?.available() ? (
-            <Button key={connector.id()} onClick={() => disconnect(connector)}>
-              Disconnect
-            </Button>
+            <div className="mt-8">
+              <Button
+                key={connector.id()}
+                onClick={() => disconnect(connector)}
+              >
+                Disconnect
+              </Button>
+            </div>
           ) : null}
         </div>
       </div>

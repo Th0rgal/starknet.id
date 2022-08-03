@@ -207,9 +207,14 @@ export default function Twitter() {
                 <h1 className="sm:text-5xl text-5xl">
                   You need to connect anon
                 </h1>
-                <Button key={connector.id()} onClick={() => connect(connector)}>
-                  Connect Wallet
-                </Button>
+                <div className="mt-8">
+                  <Button
+                    key={connector.id()}
+                    onClick={() => connect(connector)}
+                  >
+                    Connect Wallet
+                  </Button>
+                </div>
               </>
             ) : null
           )}
@@ -242,9 +247,12 @@ export default function Twitter() {
             <h1 className="sm:text-5xl text-5xl mt-4">
               It&apos;s time to set your twitter infos anon !
             </h1>
-            <Button onClick={settwitterInfos}>
-              Set my twitter infos on chain
-            </Button>
+            <div className="mt-8">
+              {" "}
+              <Button onClick={settwitterInfos}>
+                Set my twitter infos on chain
+              </Button>
+            </div>
           </>
         )}
       </div>

@@ -242,9 +242,11 @@ export default function Discord() {
             <h1 className="sm:text-5xl text-5xl mt-4">
               It&apos;s time to set your discord infos anon !
             </h1>
-            <Button onClick={setDiscordInfos}>
-              Set my discord infos on chain
-            </Button>
+            <div className="mt-8">
+              <Button onClick={setDiscordInfos}>
+                Set my discord infos on chain
+              </Button>
+            </div>
           </>
         )}
       </div>
