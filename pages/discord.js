@@ -58,8 +58,8 @@ export default function Discord() {
       method: "POST",
       body: JSON.stringify({
         type: "discord",
-        token_id_low: 0,
-        token_id_high: tokenId,
+        token_id_low: Number(tokenId),
+        token_id_high: 0,
         code: code,
       }),
     };
@@ -82,17 +82,17 @@ export default function Discord() {
   const { transactions } = useStarknetTransactionManager();
 
   function verifyDiscord() {
-    console.log("sig0", Number(signRequestData.sign0));
+    console.log("sig0", signRequestData.sign0);
     console.log("signRequestData", signRequestData);
 
     invoke({
       args: [
         [tokenId, 0],
         stringToFelt("discord"),
-        toFelt(Number(signRequestData.userId)),
+        toFelt(signRequestData.user_id),
         [
-          toFelt(Number(signRequestData.sign0)),
-          toFelt(Number(signRequestData.sign1)),
+          signRequestData.sign0,
+          signRequestData.sign1,
         ],
       ],
     });
