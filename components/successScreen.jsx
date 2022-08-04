@@ -12,7 +12,7 @@ const SuccessScreen = ({ successButton, onClick, successMessage }) => {
         alt="giga-chad"
       />
       <h1 className="sm:text-5xl text-5xl mt-2">{successMessage}</h1>
-      <div className="mt-8">
+      <div className="mt-8 flex justify-center">
         <Button onClick={onClick}>{successButton}</Button>
       </div>
     </div>

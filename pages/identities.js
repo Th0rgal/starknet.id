@@ -73,7 +73,9 @@ export default function Identities() {
   useEffect(() => {
     if (!account) return;
 
-    fetch(`https://api-testnet.aspect.co/api/v0/assets?contract_address=0x04564121a7ad7757c425e4dac1a855998bf186303107d1c28edbf0de420e7023&owner_address=${account}&sort_by=minted_at&order_by=desc`)
+    fetch(
+      `https://api-testnet.aspect.co/api/v0/assets?contract_address=0x027cac460bfddb38ee6403490fb23836dc047410edcf6cba5167ef04cfe2e821&owner_address=${account}&sort_by=minted_at&order_by=desc`
+    )
       .then((response) => response.json())
       .then((data) => setOwnedIdentities(data.assets));
   }, [account]);

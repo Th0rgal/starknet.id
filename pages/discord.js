@@ -4,7 +4,6 @@ import styles from "../styles/Identities.module.css";
 import {
   useStarknet,
   useConnectors,
-  useStarknetCall,
   useStarknetInvoke,
   useStarknetTransactionManager,
 } from "@starknet-react/core";
@@ -13,13 +12,15 @@ import { useRouter } from "next/router";
 import Button from "../components/button";
 import ErrorScreen from "../components/errorScreen";
 import LoadingScreen from "../components/loadingScreen";
-import { useStarknetIdContract } from "../hooks/starknetId";
-import { stringToFelt } from "../utils/felt";
+import { useVerifierIdContract } from "../hooks/verifier";
 import SuccessScreen from "../components/successScreen";
+import { stringToFelt, toFelt } from "../utils/felt";
+import Wallets from "../components/wallets";
 
 export default function Discord() {
   const router = useRouter();
   const [isConnected, setIsConnected] = useState(true);
+  const [hasWallet, setHasWallet] = useState(false);
 
   // Access localStorage
   const isServer = typeof window === "undefined";
@@ -28,168 +29,102 @@ export default function Discord() {
     tokenId = window.sessionStorage.getItem("tokenId");
   }
 
-  //Connection
-  const { connect, connectors } = useConnectors();
-  const { account } = useStarknet();
-
-  //Contract
-  const { contract } = useStarknetIdContract();
-
-  //GetData
-  const { data: discordId, error: discordIdError } = useStarknetCall({
-    contract: contract,
-    method: "get_data",
-    args: [[tokenId, 0], stringToFelt("discord")],
-  });
-
-  //SetData
-  const {
-    data: discordIdSetterData,
-    invoke,
-    error: discordIdSetterError,
-  } = useStarknetInvoke({
-    contract: contract,
-    method: "set_data",
-  });
-  const [discordIdSetterPossibility, setDiscordIdSetterPossibility] =
-    useState(undefined);
-  const [discordIdSetterSuccess, setDiscordIdSetterSuccess] = useState(false);
-  const { transactions } = useStarknetTransactionManager();
-
-  //Server POST request
-  const [verifyData, setVerifyData] = useState(undefined);
-  const [startProcessData, setStartProcessData] = useState(undefined);
-
-  //Screen management
-  const successScreenCondition =
-    isConnected && verifyData?.status === "success";
-
-  const errorScreenCondition =
-    isConnected &&
-    !successScreenCondition &&
-    (startProcessData?.status === "error" ||
-      verifyData?.status === "error" ||
-      discordIdError ||
-      discordIdSetterError);
-
-  const loadingScreenCondition =
-    isConnected &&
-    !errorScreenCondition &&
-    !successScreenCondition &&
-    !discordIdSetterPossibility;
-
-  const discordIdSetterScreen =
-    isConnected && discordIdSetterPossibility && !errorScreenCondition;
-
-  //Fonctions
-  function generateRandomString() {
-    let returnString = "";
-
-    for (let index = 0; index < 31; index++) {
-      returnString += Math.floor(Math.random() * 10);
-    }
-
-    return returnString;
-  }
-
-  function setDiscordInfos() {
-    invoke({
-      args: [[tokenId, 0], stringToFelt("discord"), startProcessData.id],
-    });
-  }
-
-  //Set reference only one time
-  const [reference, setReference] = useState(undefined);
-  useEffect(() => {
-    setReference(generateRandomString());
-  }, []);
-
+  //Set discord code
   const [code, setCode] = useState(undefined);
   useEffect(() => {
     setCode(router.query.code);
   }, [router]);
 
-  //First server request
-  useEffect(() => {
-    if (!reference || !code) return;
+  //Manage Connection
+  const { connect, connectors, available } = useConnectors();
+  const { account } = useStarknet();
 
-    const requestOptions = {
-      method: "POST",
-      body: JSON.stringify({
-        reference: reference,
-        type: "discord",
-        code: code,
-      }),
-    };
-
-    fetch("https://verify.starknet.id/start_process", requestOptions)
-      .then((response) => response.json())
-      .then((data) => setStartProcessData(data));
-  }, [code, reference]);
-
-  //Connection verification
   useEffect(() => {
     if (!account) {
       setIsConnected(false);
     } else {
       setIsConnected(true);
+      setScreen("verifyDiscord");
     }
   }, [account]);
 
-  //First server request verification
+  //Server Sign Request
+  const [signRequestData, setSignRequestData] = useState(undefined);
+
   useEffect(() => {
-    if (discordIdSetterSuccess === "loading") return;
+    if (!code || !tokenId) return;
 
-    if (
-      discordId &&
-      startProcessData?.status === "success" &&
-      startProcessData.id != discordId.toString()
-    ) {
-      setDiscordIdSetterPossibility(true);
-    } else if (
-      discordId &&
-      startProcessData?.status === "success" &&
-      startProcessData.id.toString() === discordId.toString()
-    ) {
-      setDiscordIdSetterSuccess(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [discordId, startProcessData]);
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({
+        type: "discord",
+        token_id_low: 0,
+        token_id_high: tokenId,
+        code: code,
+      }),
+    };
 
-  //Verification server request
-  useEffect(() => {
-    if (discordIdSetterSuccess === true) {
-      const requestOptions = {
-        method: "POST",
-        body: JSON.stringify({
-          reference: reference,
-          type: "discord",
-          nftid: Number(tokenId),
-        }),
-      };
+    fetch("https://verifier.starknet.id/sign", requestOptions)
+      .then((response) => response.json())
+      .then((data) => setSignRequestData(data));
+  }, [code, tokenId]);
 
-      fetch("https://verify.starknet.id/verify", requestOptions)
-        .then((response) => response.json())
-        .then((data) => setVerifyData(data));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [discordIdSetterSuccess]);
+  //Contract
+  const { contract } = useVerifierIdContract();
+  const {
+    data: discordVerificationData,
+    invoke,
+    error: discordVerificationError,
+  } = useStarknetInvoke({
+    contract: contract,
+    method: "write_confirmation",
+  });
+  const { transactions } = useStarknetTransactionManager();
+
+  function verifyDiscord() {
+    console.log("sig0", Number(signRequestData.sign0));
+    console.log("signRequestData", signRequestData);
+
+    invoke({
+      args: [
+        [tokenId, 0],
+        stringToFelt("discord"),
+        toFelt(Number(signRequestData.userId)),
+        [
+          toFelt(Number(signRequestData.sign0)),
+          toFelt(Number(signRequestData.sign1)),
+        ],
+      ],
+    });
+  }
+
+  //Screen management
+  const [screen, setScreen] = useState(undefined);
 
   useEffect(() => {
     for (const transaction of transactions)
-      if (transaction.transactionHash === discordIdSetterData) {
+      if (transaction.transactionHash === discordVerificationData) {
         if (transaction.status === "TRANSACTION_RECEIVED") {
-          setDiscordIdSetterPossibility(false);
-          setDiscordIdSetterSuccess("loading");
+          setScreen("loading");
         }
         if (
           transaction.status === "ACCEPTED_ON_L2" ||
           transaction.status === "ACCEPTED_ON_L1"
         ) {
-          setDiscordIdSetterSuccess(true);
+          setScreen("success");
         }
       }
-  }, [discordIdSetterData, transactions]);
+  }, [discordVerificationData, transactions]);
+
+  // Error Management
+  useEffect(() => {
+    if (signRequestData?.status === "error" || discordVerificationError) {
+      console.log("discordVerificationError", discordVerificationError);
+      setScreen("error");
+    }
+  }, [discordVerificationError, signRequestData]);
+
+  const errorScreen = isConnected && screen === "error";
 
   return (
     <div className="h-screen w-screen">
@@ -204,48 +139,57 @@ export default function Discord() {
           connectors.map((connector) =>
             connector.available() && connector.options.id === "argent-x" ? (
               <>
+                {hasWallet ? (
+                  <Wallets close={() => setHasWallet(false)} />
+                ) : null}
                 <h1 className="sm:text-5xl text-5xl">
                   You need to connect anon
                 </h1>
-                <Button key={connector.id()} onClick={() => connect(connector)}>
-                  Connect Wallet
-                </Button>
+                <div className="mt-8">
+                  <Button
+                    onClick={() =>
+                      available.length === 1
+                        ? connect(available[0])
+                        : setHasWallet(true)
+                    }
+                  >
+                    Connect Wallet
+                  </Button>
+                </div>
               </>
             ) : null
           )}
-        {loadingScreenCondition && <LoadingScreen />}
-        {errorScreenCondition && (
+        {screen === "loading" && <LoadingScreen />}
+        {errorScreen && (
           <ErrorScreen
             onClick={() => router.push(`/identities/${tokenId}`)}
             errorButton="Retry to connect"
           />
         )}
-        {successScreenCondition && (
+        {screen === "success" && (
           <>
             <SuccessScreen
               onClick={() => router.push(`/identities/${tokenId}`)}
               successButton="Get back to your starknet identity"
               successMessage="What a chad, your discord is verified!"
             />
-            <p className="mt-2">
+            {/* <p className="mt-2">
               <a
                 className="footerLink"
                 href={`https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=${verifyData?.txid}`}
               >
                 Check your transaction state
               </a>
-            </p>
+            </p> */}
           </>
         )}
-        {discordIdSetterScreen && (
+        {screen === "verifyDiscord" && (
           <>
             <h1 className="sm:text-5xl text-5xl mt-4">
-              It&apos;s time to set your discord infos anon !
+              It&apos;s time verify your discord on chain !
             </h1>
             <div className="mt-8">
-              <Button onClick={setDiscordInfos}>
-                Set my discord infos on chain
-              </Button>
+              <Button onClick={verifyDiscord}>Verify my Discord</Button>
             </div>
           </>
         )}
