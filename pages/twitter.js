@@ -4,7 +4,6 @@ import styles from "../styles/Identities.module.css";
 import {
   useStarknet,
   useConnectors,
-  useStarknetCall,
   useStarknetInvoke,
   useStarknetTransactionManager,
 } from "@starknet-react/core";
@@ -13,13 +12,15 @@ import { useRouter } from "next/router";
 import Button from "../components/button";
 import ErrorScreen from "../components/errorScreen";
 import LoadingScreen from "../components/loadingScreen";
-import { useStarknetIdContract } from "../hooks/starknetId";
-import { stringToFelt } from "../utils/felt";
+import { useVerifierIdContract } from "../hooks/verifier";
 import SuccessScreen from "../components/successScreen";
+import { stringToFelt, toFelt } from "../utils/felt";
+import Wallets from "../components/wallets";
 
 export default function Twitter() {
   const router = useRouter();
   const [isConnected, setIsConnected] = useState(true);
+  const [hasWallet, setHasWallet] = useState(false);
 
   // Access localStorage
   const isServer = typeof window === "undefined";
@@ -28,168 +29,102 @@ export default function Twitter() {
     tokenId = window.sessionStorage.getItem("tokenId");
   }
 
-  //Connection
-  const { connect, connectors } = useConnectors();
-  const { account } = useStarknet();
-
-  //Contract
-  const { contract } = useStarknetIdContract();
-
-  //GetData
-  const { data: twitterId, error: twitterIdError } = useStarknetCall({
-    contract: contract,
-    method: "get_data",
-    args: [[tokenId, 0], stringToFelt("twitter")],
-  });
-
-  //SetData
-  const {
-    data: twitterIdSetterData,
-    invoke,
-    error: twitterIdSetterError,
-  } = useStarknetInvoke({
-    contract: contract,
-    method: "set_data",
-  });
-  const [twitterIdSetterPossibility, settwitterIdSetterPossibility] =
-    useState(undefined);
-  const [twitterIdSetterSuccess, settwitterIdSetterSuccess] = useState(false);
-  const { transactions } = useStarknetTransactionManager();
-
-  //Server POST request
-  const [verifyData, setVerifyData] = useState(undefined);
-  const [startProcessData, setStartProcessData] = useState(undefined);
-
-  //Screen management
-  const successScreenCondition =
-    isConnected && verifyData?.status === "success";
-
-  const errorScreenCondition =
-    isConnected &&
-    !successScreenCondition &&
-    (startProcessData?.status === "error" ||
-      verifyData?.status === "error" ||
-      twitterIdError ||
-      twitterIdSetterError);
-
-  const loadingScreenCondition =
-    isConnected &&
-    !errorScreenCondition &&
-    !successScreenCondition &&
-    !twitterIdSetterPossibility;
-
-  const twitterIdSetterScreen =
-    isConnected && twitterIdSetterPossibility && !errorScreenCondition;
-
-  //Fonctions
-  function generateRandomString() {
-    let returnString = "";
-
-    for (let index = 0; index < 31; index++) {
-      returnString += Math.floor(Math.random() * 10);
-    }
-
-    return returnString;
-  }
-
-  function settwitterInfos() {
-    invoke({
-      args: [[tokenId, 0], stringToFelt("twitter"), startProcessData.id],
-    });
-  }
-
-  //Set reference only one time
-  const [reference, setReference] = useState(undefined);
-  useEffect(() => {
-    setReference(generateRandomString());
-  }, []);
-
+  //Set twitter code
   const [code, setCode] = useState(undefined);
   useEffect(() => {
     setCode(router.query.code);
   }, [router]);
 
-  //First server request
-  useEffect(() => {
-    if (!reference || !code) return;
+  //Manage Connection
+  const { connect, connectors, available } = useConnectors();
+  const { account } = useStarknet();
 
-    const requestOptions = {
-      method: "POST",
-      body: JSON.stringify({
-        reference: reference,
-        type: "twitter",
-        code: code,
-      }),
-    };
-
-    fetch("https://verify.starknet.id/start_process", requestOptions)
-      .then((response) => response.json())
-      .then((data) => setStartProcessData(data));
-  }, [code, reference]);
-
-  //Connection verification
   useEffect(() => {
     if (!account) {
       setIsConnected(false);
     } else {
       setIsConnected(true);
+      setScreen("verifyTwitter");
     }
   }, [account]);
 
-  //First server request verification
+  //Server Sign Request
+  const [signRequestData, setSignRequestData] = useState(undefined);
+
   useEffect(() => {
-    if (twitterIdSetterSuccess === "loading") return;
+    if (!code || !tokenId) return;
 
-    if (
-      twitterId &&
-      startProcessData?.status === "success" &&
-      startProcessData.id != twitterId.toString()
-    ) {
-      settwitterIdSetterPossibility(true);
-    } else if (
-      twitterId &&
-      startProcessData?.status === "success" &&
-      startProcessData.id.toString() === twitterId.toString()
-    ) {
-      settwitterIdSetterSuccess(true);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [twitterId, startProcessData]);
+    const requestOptions = {
+      method: "POST",
+      body: JSON.stringify({
+        type: "twitter",
+        token_id_low: Number(tokenId),
+        token_id_high: 0,
+        code: code,
+      }),
+    };
 
-  //Verification server request
-  useEffect(() => {
-    if (twitterIdSetterSuccess === true) {
-      const requestOptions = {
-        method: "POST",
-        body: JSON.stringify({
-          reference: reference,
-          type: "twitter",
-          nftid: Number(tokenId),
-        }),
-      };
+    fetch("https://verifier.starknet.id/sign", requestOptions)
+      .then((response) => response.json())
+      .then((data) => setSignRequestData(data));
+  }, [code, tokenId]);
 
-      fetch("https://verify.starknet.id/verify", requestOptions)
-        .then((response) => response.json())
-        .then((data) => setVerifyData(data));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [twitterIdSetterSuccess]);
+  //Contract
+  const { contract } = useVerifierIdContract();
+  const {
+    data: twitterVerificationData,
+    invoke,
+    error: twitterVerificationError,
+  } = useStarknetInvoke({
+    contract: contract,
+    method: "write_confirmation",
+  });
+  const { transactions } = useStarknetTransactionManager();
+
+  function verifyTwitter() {
+    console.log("sig0", signRequestData.sign0);
+    console.log("signRequestData", signRequestData);
+
+    invoke({
+      args: [
+        [tokenId, 0],
+        stringToFelt("twitter"),
+        toFelt(signRequestData.user_id),
+        [
+          signRequestData.sign0,
+          signRequestData.sign1,
+        ],
+      ],
+    });
+  }
+
+  //Screen management
+  const [screen, setScreen] = useState(undefined);
 
   useEffect(() => {
     for (const transaction of transactions)
-      if (transaction.transactionHash === twitterIdSetterData) {
+      if (transaction.transactionHash === twitterVerificationData) {
         if (transaction.status === "TRANSACTION_RECEIVED") {
-          settwitterIdSetterPossibility(false);
-          settwitterIdSetterSuccess("loading");
+          setScreen("loading");
         }
         if (
           transaction.status === "ACCEPTED_ON_L2" ||
           transaction.status === "ACCEPTED_ON_L1"
         ) {
-          settwitterIdSetterSuccess(true);
+          setScreen("success");
         }
       }
-  }, [twitterIdSetterData, transactions]);
+  }, [twitterVerificationData, transactions]);
+
+  // Error Management
+  useEffect(() => {
+    if (signRequestData?.status === "error" || twitterVerificationError) {
+      console.log("twitterVerificationError", twitterVerificationError);
+      setScreen("error");
+    }
+  }, [twitterVerificationError, signRequestData]);
+
+  const errorScreen = isConnected && screen === "error";
 
   return (
     <div className="h-screen w-screen">
@@ -204,13 +139,19 @@ export default function Twitter() {
           connectors.map((connector) =>
             connector.available() && connector.options.id === "argent-x" ? (
               <>
+                {hasWallet ? (
+                  <Wallets close={() => setHasWallet(false)} />
+                ) : null}
                 <h1 className="sm:text-5xl text-5xl">
                   You need to connect anon
                 </h1>
                 <div className="mt-8">
                   <Button
-                    key={connector.id()}
-                    onClick={() => connect(connector)}
+                    onClick={() =>
+                      available.length === 1
+                        ? connect(available[0])
+                        : setHasWallet(true)
+                    }
                   >
                     Connect Wallet
                   </Button>
@@ -218,40 +159,37 @@ export default function Twitter() {
               </>
             ) : null
           )}
-        {loadingScreenCondition && <LoadingScreen />}
-        {errorScreenCondition && (
+        {screen === "loading" && <LoadingScreen />}
+        {errorScreen && (
           <ErrorScreen
             onClick={() => router.push(`/identities/${tokenId}`)}
             errorButton="Retry to connect"
           />
         )}
-        {successScreenCondition && (
+        {screen === "success" && (
           <>
             <SuccessScreen
               onClick={() => router.push(`/identities/${tokenId}`)}
               successButton="Get back to your starknet identity"
               successMessage="What a chad, your twitter is verified!"
             />
-            <p className="mt-2">
+            {/* <p className="mt-2">
               <a
                 className="footerLink"
                 href={`https://alpha4.starknet.io/feeder_gateway/get_transaction_receipt?transactionHash=${verifyData?.txid}`}
               >
                 Check your transaction state
               </a>
-            </p>
+            </p> */}
           </>
         )}
-        {twitterIdSetterScreen && (
+        {screen === "verifyTwitter" && (
           <>
             <h1 className="sm:text-5xl text-5xl mt-4">
-              It&apos;s time to set your twitter infos anon !
+              It&apos;s time verify your twitter on chain !
             </h1>
             <div className="mt-8">
-              {" "}
-              <Button onClick={settwitterInfos}>
-                Set my twitter infos on chain
-              </Button>
+              <Button onClick={verifyTwitter}>Verify my Twitter</Button>
             </div>
           </>
         )}
