@@ -64,7 +64,7 @@ export default function Discord() {
       }),
     };
 
-    fetch("https://verifier.starknet.id/sign", requestOptions)
+    fetch("https://goerli.verifier.starknet.id/sign", requestOptions)
       .then((response) => response.json())
       .then((data) => setSignRequestData(data));
   }, [code, tokenId]);
