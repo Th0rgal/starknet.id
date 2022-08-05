@@ -74,7 +74,7 @@ export default function Identities() {
     if (!account) return;
 
     fetch(
-      `https://api-testnet.aspect.co/api/v0/assets?contract_address=0x027cac460bfddb38ee6403490fb23836dc047410edcf6cba5167ef04cfe2e821&owner_address=${account}&sort_by=minted_at&order_by=desc`
+      `https://api-testnet.aspect.co/api/v0/assets?contract_address=0x02362b9eb2edf06e2dcbed55cc0ea98d0d69572da5a4922387cc60d25d8dd9ea&owner_address=${account}&sort_by=minted_at&order_by=desc`
     )
       .then((response) => response.json())
       .then((data) => setOwnedIdentities(data.assets));

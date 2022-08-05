@@ -16,7 +16,7 @@ const Verified = ({ type }) => {
     args: [
       [router.query.tokenId, 0],
       stringToFelt(type),
-      "0x0075b848cbc4fbaedaf31ac8389403b4975ac700bb34d7d615820123e937b4f6",
+      "0x00689127b53c6555a15ab6fb5a5e8506cd5e746ddd08bd98eb7506675896e20d",
     ],
   });
   const [isValid, setIsValid] = useState(false);

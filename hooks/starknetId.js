@@ -5,6 +5,6 @@ export function useStarknetIdContract() {
   return useContract({
     abi: starknet_id_abi,
     address:
-      "0x027cac460bfddb38ee6403490fb23836dc047410edcf6cba5167ef04cfe2e821",
+      "0x02362b9eb2edf06e2dcbed55cc0ea98d0d69572da5a4922387cc60d25d8dd9ea",
   });
 }
