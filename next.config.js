@@ -9,6 +9,6 @@ module.exports = {
     return config;
   },
   images: {
-    domains: ["i.ibb.co", "starknet.id", "starknetid.netlify.app"],
+    domains: ["i.ibb.co", "starknet.id", "starknetid.netlify.app", "robohash.org"],
   },
 };
