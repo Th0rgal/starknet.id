@@ -5,6 +5,6 @@ export function useVerifierIdContract() {
   return useContract({
     abi: verifier_abi,
     address:
-      "0x00689127b53c6555a15ab6fb5a5e8506cd5e746ddd08bd98eb7506675896e20d",
+      "0x06520a4a1934c84a385a3088952c3812c96f9e9c614bc4d483daff5622ea9fad",
   });
 }
