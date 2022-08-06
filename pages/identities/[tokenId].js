@@ -20,7 +20,6 @@ export default function TokenId() {
         router.query.tokenId?.charAt(router.query.tokenId?.length - 1)
       : router.query.tokenId;
 
-  //Contract calls
   useEffect(() => {
     if (!account) {
       router.push("/home");
@@ -40,7 +39,7 @@ export default function TokenId() {
           Your identity : {tokenIdAbbreviation}
         </h1>
 
-        <div className="flex">
+        <div className={styles.containerGallery}>
           <div className="m-3">
             <ClickableIcon
               icon="twitter"
@@ -67,6 +66,20 @@ export default function TokenId() {
             />
             <div className="flex justify-center items-center">
               <Verified type="discord" />
+            </div>
+          </div>
+          <div className="m-3">
+            <ClickableIcon
+              icon="github"
+              onClick={() => {
+                sessionStorage.setItem("tokenId", router.query.tokenId);
+                window.location.replace(
+                  "https://github.com/login/oauth/authorize?client_id=bd72ec641d75c2608121"
+                );
+              }}
+            />
+            <div className="flex justify-center items-center">
+              <Verified type="github" />
             </div>
           </div>
         </div>

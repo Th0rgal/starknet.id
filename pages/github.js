@@ -17,7 +17,7 @@ import SuccessScreen from "../components/successScreen";
 import { stringToFelt, toFelt } from "../utils/felt";
 import Wallets from "../components/wallets";
 
-export default function Twitter() {
+export default function Github() {
   const router = useRouter();
   const [isConnected, setIsConnected] = useState(true);
   const [hasWallet, setHasWallet] = useState(false);
@@ -29,7 +29,7 @@ export default function Twitter() {
     tokenId = window.sessionStorage.getItem("tokenId");
   }
 
-  //Set twitter code
+  //Set github code
   const [code, setCode] = useState(undefined);
   useEffect(() => {
     setCode(router.query.code);
@@ -44,7 +44,7 @@ export default function Twitter() {
       setIsConnected(false);
     } else {
       setIsConnected(true);
-      setScreen("verifyTwitter");
+      setScreen("verifyGithub");
     }
   }, [account]);
 
@@ -57,7 +57,7 @@ export default function Twitter() {
     const requestOptions = {
       method: "POST",
       body: JSON.stringify({
-        type: "twitter",
+        type: "github",
         token_id_low: Number(tokenId),
         token_id_high: 0,
         code: code,
@@ -72,21 +72,21 @@ export default function Twitter() {
   //Contract
   const { contract } = useVerifierIdContract();
   const {
-    data: twitterVerificationData,
+    data: githubVerificationData,
     invoke,
-    error: twitterVerificationError,
+    error: githubVerificationError,
   } = useStarknetInvoke({
     contract: contract,
     method: "write_confirmation",
   });
   const { transactions } = useStarknetTransactionManager();
 
-  function verifyTwitter() {
+  function verifyGithub() {
     invoke({
       args: [
         [tokenId, 0],
-        stringToFelt("twitter"),
-        toFelt(signRequestData.user_id),
+        stringToFelt("github"),
+        stringToFelt(signRequestData.user_id),
         [signRequestData.sign0, signRequestData.sign1],
       ],
     });
@@ -97,7 +97,7 @@ export default function Twitter() {
 
   useEffect(() => {
     for (const transaction of transactions)
-      if (transaction.transactionHash === twitterVerificationData) {
+      if (transaction.transactionHash === githubVerificationData) {
         if (transaction.status === "TRANSACTION_RECEIVED") {
           setScreen("loading");
         }
@@ -108,14 +108,14 @@ export default function Twitter() {
           setScreen("success");
         }
       }
-  }, [twitterVerificationData, transactions]);
+  }, [githubVerificationData, transactions]);
 
   // Error Management
   useEffect(() => {
-    if (signRequestData?.status === "error" || twitterVerificationError) {
+    if (signRequestData?.status === "error" || githubVerificationError) {
       setScreen("error");
     }
-  }, [twitterVerificationError, signRequestData]);
+  }, [githubVerificationError, signRequestData]);
 
   const errorScreen = isConnected && screen === "error";
 
@@ -164,7 +164,7 @@ export default function Twitter() {
             <SuccessScreen
               onClick={() => router.push(`/identities/${tokenId}`)}
               successButton="Get back to your starknet identity"
-              successMessage="What a chad, your twitter is verified !"
+              successMessage="What a chad, your github is verified !"
             />
             {/* <p className="mt-2">
               <a
@@ -176,13 +176,13 @@ export default function Twitter() {
             </p> */}
           </>
         )}
-        {screen === "verifyTwitter" && (
+        {screen === "verifyGithub" && (
           <>
             <h1 className="sm:text-5xl text-5xl mt-4">
-              It&apos;s time verify your twitter on chain !
+              It&apos;s time verify your github on chain !
             </h1>
             <div className="mt-8">
-              <Button onClick={verifyTwitter}>Verify my Twitter</Button>
+              <Button onClick={verifyGithub}>Verify my Github</Button>
             </div>
           </>
         )}

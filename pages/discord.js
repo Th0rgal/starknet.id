@@ -82,18 +82,12 @@ export default function Discord() {
   const { transactions } = useStarknetTransactionManager();
 
   function verifyDiscord() {
-    console.log("sig0", signRequestData.sign0);
-    console.log("signRequestData", signRequestData);
-
     invoke({
       args: [
         [tokenId, 0],
         stringToFelt("discord"),
         toFelt(signRequestData.user_id),
-        [
-          signRequestData.sign0,
-          signRequestData.sign1,
-        ],
+        [signRequestData.sign0, signRequestData.sign1],
       ],
     });
   }
@@ -119,7 +113,6 @@ export default function Discord() {
   // Error Management
   useEffect(() => {
     if (signRequestData?.status === "error" || discordVerificationError) {
-      console.log("discordVerificationError", discordVerificationError);
       setScreen("error");
     }
   }, [discordVerificationError, signRequestData]);
@@ -171,7 +164,7 @@ export default function Discord() {
             <SuccessScreen
               onClick={() => router.push(`/identities/${tokenId}`)}
               successButton="Get back to your starknet identity"
-              successMessage="What a chad, your discord is verified!"
+              successMessage="What a chad, your discord is verified !"
             />
             {/* <p className="mt-2">
               <a
