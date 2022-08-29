@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
-
-module.exports = {
+const nextConfig = {
   reactStrictMode: true,
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -16,4 +15,21 @@ module.exports = {
       "robohash.org",
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/api/:slug*",
+        headers: [
+          {
+            key: "content-type",
+            value: "image/svg+xml",
+          },
+        ],
+      },
+    ];
+  },
+  reactStrictMode: true,
+  swcMinify: true,
 };
+
+module.exports = nextConfig;
